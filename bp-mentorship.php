@@ -4,8 +4,8 @@
  * Plugin URI:  https://github.com/alexey-sergeev/mif-bp-mentorship
  * Author:      Alexey Sergeev
  * Author URI:  https://github.com/alexey-sergeev
- * License:     GPLv2 or later
- * License URI: https://www.gnu.org/licenses/gpl-2.0.html
+ * License:     GPLv3
+ * License URI: https://www.gnu.org/licenses/gpl-3.0.html
  * Description: Плагин BuddyPress для создания системы наставников в социальной образовательной сети.
  * Version:     0.0.1
  * Text Domain: mif-bp-mentorship
