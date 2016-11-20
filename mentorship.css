@@ -1,0 +1,22 @@
+/* Особые стили для плагина MIF BP Membership */
+
+
+.add-new-mentor-learner {
+    clear: both;
+    padding: 1em;
+    margin: 1em 0;
+    border: 3px dashed #eaeaea;
+}
+
+.add-new-mentor-learner span {
+    display: block;
+    margin: 1em 0;
+}
+
+.add-new-mentor-learner form, .response-box {
+    display: none;
+}
+
+.center {
+    text-align: center;
+}
