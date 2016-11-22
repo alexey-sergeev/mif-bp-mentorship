@@ -127,6 +127,66 @@ function mentorship_remove_mentor( $learner = false, $mentor = false )
 }
 
 //
+// Добавить наставников или учеников списком
+//
+//
+
+function mentorship_add_members_by_list( $target_member, $member_list, $mode = 'mentors' )
+{
+
+    //
+    // Входные данные
+    //      $target_member - кому добавляем
+    //      $member_list - список добавляемых (логины через пробелы, запятые, точки с запятой, переводы строк)
+    //      $mode - 'mentors' или 'learners' (добавляемые - наставники или учащиеся)
+    //
+    // Возвращает двумерный массив
+    //      строка 0 - те пользователи, которые были успешно добавлены
+    //      строка 1 - те пользователи, которые уже были в списке (не добавлены)
+    //      строка 2 - сам себе наставник (сам себе учащийся) (не добавлен)
+    //      строка 3 - пользователи, которые не существуют (не добавлены)
+    //  
+
+    $arr_out = array();
+    $mentor_list = preg_replace( '/\@/', ' ', $mentor_list );
+    $mentor_list = preg_replace( '/\s/', ',', $mentor_list );
+    // $mentor_list = preg_replace( '/\n/', ',', $mentor_list );
+    $mentor_list = preg_replace( '/;/', ',', $mentor_list );
+    $arr = explode( ",", $mentor_list );
+    
+    foreach ( (array) $arr as $user_nicename ) {
+
+        $ret = false;
+
+        $user_nicename = sanitize_text_field( $user_nicename );
+        $user_nicename = strim( $user_nicename );
+
+        if ( $user_nicename == '' ) continue;
+
+        $user = get_user_by( 'login', $user_nicename ); 
+        if ( is_object( $user ) ) $ret = mentorship_add_mentor( $learner, $user->ID );
+        
+        $index = ( $ret ) ? $ret - 100 : 3;
+        $arr_out[$index][] = $user_nicename;
+
+    }
+
+    return $arr_out;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+//
 // Добавить наставников списком
 //
 //

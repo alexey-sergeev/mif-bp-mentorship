@@ -25,7 +25,7 @@ function mentorship_profile_page()
                                         'slug' => 'mentors', 
                                         'parent_url' => $profile_link, 
                                         'parent_slug' => $bp->friends->slug, 
-                                        'screen_function' => 'mentors_page', 
+                                        'screen_function' => 'mentors_learners_page', 
                                         'position' => 10,
                                         'user_has_access' => mentorship_user_can( 'access_to_mentorship_mentors_page' ) 
                                     ) );
@@ -35,90 +35,67 @@ function mentorship_profile_page()
                                         'slug' => 'learners', 
                                         'parent_url' => $profile_link, 
                                         'parent_slug' => $bp->friends->slug, 
-                                        'screen_function' => 'learners_page', 
+                                        'screen_function' => 'mentors_learners_page', 
                                         'position' => 15,
                                         'user_has_access' => mentorship_user_can( 'access_to_mentorship_learners_page' ) 
                                     ) );
 
 }
 
+
 //
-// Оформление вкладки учеников
+// Оформление вкладки учащихся или наставников
 //
 // 
 
-function learners_page()
+function mentors_learners_page()
 {
     global $bp;
 
-    if ( isset( $_POST['add_mentors_list'] ) &&  wp_verify_nonce( $_POST['_wpnonce'], "mentorship_add_mentors" ) ) 
-        mentorship_add_mentors_by_list( $bp->displayed_user->id, $_POST['add_mentors_list'] );
+    if ( ! ( $bp->current_action == 'mentors' || $bp->current_action == 'learners' ) ) return false; 
 
-    add_action( 'bp_template_title', 'learners_page_title' );
-    add_action( 'bp_template_content', 'learners_page_content' );
+    $mode = $bp->current_action;
+
+    // if ( isset( $_POST['add_members_list'] ) &&  wp_verify_nonce( $_POST['_wpnonce'], "mentorship_add_members" ) ) 
+    //     mentorship_add_members_by_list( $bp->displayed_user->id, $_POST['add_members_list'], $mode );
+
+    if ( $mode == 'mentors' ) {
+
+        add_action( 'bp_template_title', function() { echo '<h2>' . __( 'Наставники', 'mentorship' ) . '</h2>'; }  );
+        add_action( 'bp_template_content', function() { mentors_learners_page_content( 'mentors' ); }  );
+        
+    } elseif ( $mode == 'learners' ) {
+
+        add_action( 'bp_template_title', function() { echo '<h2>' . __( 'Учащиеся', 'mentorship' ) . '</h2>'; }  );
+        add_action( 'bp_template_content', function() { mentors_learners_page_content( 'learners' ); }  );
+
+    }
+
     bp_core_load_template( apply_filters( 'bp_core_template_plugin', 'members/single/plugins' ) );
 
 }
 
-function learners_page_title()
-{
-    echo '<h2>' . __( 'Ученики', 'mentorship' ) . '</h2>';
-}
-
-function learners_page_content()
+function mentors_learners_page_content( $mode )
 {
     global $bp;
-    $mentor = $bp->displayed_user->id;
 
-    $learners = mentorship_get_learners( $mentor );
+    $target_member = $bp->displayed_user->id;
 
-    $learners_param = array( 'include' => implode( $learners, ',' ) );
+    if ( $mode == 'mentors' ) {
 
-    require( dirname( __FILE__ ) . '/../templates/mentors-loop.php' );
+        $members = mentorship_get_mentors( $target_member );
+
+    } elseif ( $mode == 'learners' ) {
+
+        $members = mentorship_get_learners( $target_member );
+
+    }
     
-    echo get_mentors_learner_form ( $mentor, 'learners' );
+    $members_param = array( 'include' => implode( $members, ',' ), 'user_id' => false );
 
-}
-
-
-
-
-//
-// Оформление вкладки наставников
-//
-// 
-
-function mentors_page()
-{
-    global $bp;
-
-    if ( isset( $_POST['add_mentors_list'] ) &&  wp_verify_nonce( $_POST['_wpnonce'], "mentorship_add_mentors" ) ) 
-        mentorship_add_mentors_by_list( $bp->displayed_user->id, $_POST['add_mentors_list'] );
-
-    add_action( 'bp_template_title', 'mentors_page_title' );
-    add_action( 'bp_template_content', 'mentors_page_content' );
-    bp_core_load_template( apply_filters( 'bp_core_template_plugin', 'members/single/plugins' ) );
-
-}
-
-function mentors_page_title()
-{
-    echo '<h2>' . __( 'Наставники', 'mentorship' ) . '</h2>';
-}
-
-function mentors_page_content()
-{
-    global $bp;
-    $learner = $bp->displayed_user->id;
-
-    $mentors = mentorship_get_mentors( $learner );
-
-    $mentors_param = array( 'include' => implode( $mentors, ',' ) );
-
-    require( dirname( __FILE__ ) . '/../templates/mentors-loop.php' );
+    require( dirname( __FILE__ ) . '/../templates/members-loop.php' );
     
-    echo get_mentors_learner_form ( $learner, 'mentors' );
-
+    echo get_mentors_learners_form ( $target_member, $mode );
 }
 
 
@@ -127,7 +104,7 @@ function mentors_page_content()
 //
 //
 
-function get_mentors_learner_form ( $target_user = false, $mode =  'mentors' )
+function get_mentors_learners_form ( $target_user = false, $mode =  'mentors' )
 {
 
     if ( $target_user === false ) return;
