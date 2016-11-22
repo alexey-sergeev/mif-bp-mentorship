@@ -42,7 +42,7 @@ function mentorship_get_mentors( $user = false )
 
 
 //
-// Получить список подопечных
+// Получить список учеников
 //
 //
 
@@ -57,12 +57,15 @@ function mentorship_get_learners( $user = false )
     if ( ! $arr = wp_cache_get( $user_id, "mentorship_get_learners") ) {
         
         $table = _get_meta_table( 'user' );
-        $arr = $wpdb->get_results( "SELECT user_id FROM $table WHERE meta_value IN ($id_list)", ARRAY_A );
+        $arr = $wpdb->get_results( "SELECT user_id FROM $table WHERE meta_key='mentorship' AND meta_value=$user_id", ARRAY_A );
         wp_cache_add( $user_id, $arr, "mentorship_get_learners");
 
     }
 
-    return $arr;
+    $arr_out = array();
+    foreach ( (array) $arr as $item ) $arr_out[] = $item['user_id'];   
+
+    return $arr_out;
 }
 
 
@@ -171,17 +174,22 @@ function mentorship_add_mentors_by_list( $learner, $mentor_list )
 //
 //
 
-function strim( $st = '' )
-{
-    $st = preg_replace( '/\s+/', ' ', $st );
-    $st = trim( $st );
-    
-    return $st;
+if ( ! function_exists( 'strim' ) ) {
+
+    function strim( $st = '' )
+    {
+        $st = preg_replace( '/\s+/', ' ', $st );
+        $st = trim( $st );
+        
+        return $st;
+    }
+
 }
 
-
-
-
+//
+// Вывод отладочной информации
+//
+//
 
 function p( $data )
 {

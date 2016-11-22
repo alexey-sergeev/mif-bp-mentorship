@@ -44,6 +44,7 @@ function mif_bp_mentorship_init()
 	require_once $plugin_path . 'inc/functions.php';
 	require_once $plugin_path . 'inc/mentors-page.php';
 	require_once $plugin_path . 'inc/ajax-helper.php';
+	require_once $plugin_path . 'inc/bp-fix.php';
 }
 
 

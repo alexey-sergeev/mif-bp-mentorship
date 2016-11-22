@@ -9,29 +9,84 @@ defined( 'ABSPATH' ) || exit;
 
 
 //
-// Новая вкладка в профиле пользователя
+// Новые вкладки на странице друзей
 //
 // 
 
-if ( mentorship_user_can( 'access_to_mentorship_profile_page' ) ) 
-    add_action( 'bp_xprofile_setup_nav', 'mentorship_profile_page' );
+add_action( 'bp_friends_setup_nav', 'mentorship_profile_page' );
 
 function mentorship_profile_page()
 {
     global $bp;
  
-    $profile_link = $bp->displayed_user->domain . $bp->profile->slug . '/';
+    $profile_link = $bp->displayed_user->domain . $bp->friends->slug . '/';
 
     bp_core_new_subnav_item( array(     'name' => __( 'Наставники', 'mentorship' ), 
                                         'slug' => 'mentors', 
                                         'parent_url' => $profile_link, 
-                                        'parent_slug' => $bp->profile->slug, 
+                                        'parent_slug' => $bp->friends->slug, 
                                         'screen_function' => 'mentors_page', 
-                                        'position' => 40 
+                                        'position' => 10,
+                                        'user_has_access' => mentorship_user_can( 'access_to_mentorship_mentors_page' ) 
                                     ) );
-   
+
+
+    bp_core_new_subnav_item( array(     'name' => __( 'Учащиеся', 'mentorship' ), 
+                                        'slug' => 'learners', 
+                                        'parent_url' => $profile_link, 
+                                        'parent_slug' => $bp->friends->slug, 
+                                        'screen_function' => 'learners_page', 
+                                        'position' => 15,
+                                        'user_has_access' => mentorship_user_can( 'access_to_mentorship_learners_page' ) 
+                                    ) );
+
 }
 
+//
+// Оформление вкладки учеников
+//
+// 
+
+function learners_page()
+{
+    global $bp;
+
+    if ( isset( $_POST['add_mentors_list'] ) &&  wp_verify_nonce( $_POST['_wpnonce'], "mentorship_add_mentors" ) ) 
+        mentorship_add_mentors_by_list( $bp->displayed_user->id, $_POST['add_mentors_list'] );
+
+    add_action( 'bp_template_title', 'learners_page_title' );
+    add_action( 'bp_template_content', 'learners_page_content' );
+    bp_core_load_template( apply_filters( 'bp_core_template_plugin', 'members/single/plugins' ) );
+
+}
+
+function learners_page_title()
+{
+    echo '<h2>' . __( 'Ученики', 'mentorship' ) . '</h2>';
+}
+
+function learners_page_content()
+{
+    global $bp;
+    $mentor = $bp->displayed_user->id;
+
+    $learners = mentorship_get_learners( $mentor );
+
+    $learners_param = array( 'include' => implode( $learners, ',' ) );
+
+    require( dirname( __FILE__ ) . '/../templates/mentors-loop.php' );
+    
+    echo get_mentors_learner_form ( $mentor, 'learners' );
+
+}
+
+
+
+
+//
+// Оформление вкладки наставников
+//
+// 
 
 function mentors_page()
 {
@@ -43,6 +98,7 @@ function mentors_page()
     add_action( 'bp_template_title', 'mentors_page_title' );
     add_action( 'bp_template_content', 'mentors_page_content' );
     bp_core_load_template( apply_filters( 'bp_core_template_plugin', 'members/single/plugins' ) );
+
 }
 
 function mentors_page_title()
@@ -57,17 +113,12 @@ function mentors_page_content()
 
     $mentors = mentorship_get_mentors( $learner );
 
-    // foreach ( (array) $mentors as $mentor_id ) {
-
     $mentors_param = array( 'include' => implode( $mentors, ',' ) );
 
     require( dirname( __FILE__ ) . '/../templates/mentors-loop.php' );
     
     echo get_mentors_learner_form ( $learner, 'mentors' );
 
-    // echo '
-    // <div class="add-mentors">
-    // </div>';
 }
 
 
