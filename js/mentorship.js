@@ -60,6 +60,7 @@ jq( document ).ready( function() {
         nonce = jq( this ).attr( 'href' );
 		mentor = jq( this ).attr( 'data-mentor' );
 		learner = jq( this ).attr( 'data-learner' );
+		action_do = jq( this ).attr( 'data-action-do' );
 		mode = jq( this ).attr( 'data-mode' );
 		button = jq( this ).parent().parent();
 
@@ -68,7 +69,8 @@ jq( document ).ready( function() {
 		nonce = nonce[0];
 
 		jq.post( ajaxurl, {
-			action: 'add_remove_mentor',
+			action: 'add_remove_member',
+			action_do: action_do,
 			nonce: nonce,
 			mentor: mentor,
 			learner: learner,
