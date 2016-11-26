@@ -2,7 +2,7 @@
 
 //
 // MIF BP Mentorship 
-// Работа с вкладкой Montors в профиле пользователя
+// Работа с вкладками "Наставники" и "Учащиеся" в разделе "Друзья" профиля пользователя
 //
 
 defined( 'ABSPATH' ) || exit;
@@ -13,9 +13,9 @@ defined( 'ABSPATH' ) || exit;
 //
 // 
 
-add_action( 'bp_friends_setup_nav', 'mentorship_profile_page' );
+add_action( 'bp_friends_setup_nav', 'mentorship_members_page' );
 
-function mentorship_profile_page()
+function mentorship_members_page()
 {
     global $bp;
  
@@ -61,13 +61,13 @@ function mentors_learners_page()
 
     if ( $mode == 'mentors' ) {
 
-        add_action( 'bp_template_title', function() { echo '<h2>' . __( 'Наставники', 'mentorship' ) . '</h2>'; }  );
-        add_action( 'bp_template_content', function() { mentors_learners_page_content( 'mentors' ); }  );
+        add_action( 'bp_template_title', function() { echo '<h2>' . __( 'Наставники', 'mentorship' ) . '</h2>'; } );
+        add_action( 'bp_template_content', function() { mentors_learners_page_content( 'mentors' ); } );
         
     } elseif ( $mode == 'learners' ) {
 
-        add_action( 'bp_template_title', function() { echo '<h2>' . __( 'Учащиеся', 'mentorship' ) . '</h2>'; }  );
-        add_action( 'bp_template_content', function() { mentors_learners_page_content( 'learners' ); }  );
+        add_action( 'bp_template_title', function() { echo '<h2>' . __( 'Учащиеся', 'mentorship' ) . '</h2>'; } );
+        add_action( 'bp_template_content', function() { mentors_learners_page_content( 'learners' ); } );
 
     }
 
@@ -95,7 +95,7 @@ function mentors_learners_page_content( $mode )
 
     require( dirname( __FILE__ ) . '/../templates/members-loop.php' );
     
-    echo get_mentors_learners_form ( $target_member, $mode );
+    echo get_mentors_learners_form( $target_member, $mode );
 }
 
 
@@ -225,50 +225,6 @@ function get_member_button( $mentor = false, $learner = false, $mode = false, $a
     return bp_get_button( $button );
 
 }
-
-// function get_add_member_button( $displayed_user_id = false, $list_user_id = false, $mode = false )
-// {
-
-//     if ( ! $displayed_user_id || ! $list_user_id ) return;
-
-//     if ( $displayed_user_id == $list_user_id ) return '';
-
-//     if ( $mode == 'mentors' ) {
-
-//         $button = array(
-//             'id'                => 'add_mentor',
-//             'component'         => 'activity',
-//             'must_be_logged_in' => true,
-//             'block_self'        => false,
-//             'button_attr'         => array( 'data-mentor' => $list_user_id, 'data-learner' => $displayed_user_id, 'data-mode' => 'mentors', 'data-action-do' => 'add' ),        
-//             'wrapper_class'     => 'mentorship-button add-mentor',
-//             'link_href'         => wp_nonce_url( bp_loggedin_user_domain() , 'mentorship-add-mentors-nonce' ),
-//             'link_text'         => __( 'Добавить наставника', 'mentorship' ),
-//             'link_class'        => 'mentorship-button add-mentor'
-//         );
-
-//     } elseif ( $mode == 'learners' ) {
-
-//         $button = array(
-//             'id'                => 'add_learner',
-//             'component'         => 'activity',
-//             'must_be_logged_in' => true,
-//             'block_self'        => false,
-//             'button_attr'         => array( 'data-mentor' => $displayed_user_id, 'data-learner' => $list_user_id, 'data-mode' => 'learners', 'data-action-do' => 'add' ),        
-//             'wrapper_class'     => 'mentorship-button add-learner',
-//             'link_href'         => wp_nonce_url( bp_loggedin_user_domain() , 'mentorship-add-learners-nonce' ),
-//             'link_text'         => __( 'Добавить учащегося', 'mentorship' ),
-//             'link_class'        => 'mentorship-button add-learner'
-//         );
-
-//     } 
-    
-//     return bp_get_button( $button );
-
-// }
-
-
-
 
 
 ?>

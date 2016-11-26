@@ -20,3 +20,42 @@
 .center {
     text-align: center;
 }
+
+.mentor-mprofile h3 {
+    margin-top: 2em;
+}
+
+.mentor-mprofile input[type='text'] {
+    margin-bottom: 0.5em;
+    width: 300px;
+}
+
+.mentor-mprofile textarea {
+    margin-bottom: 0.5em;
+}
+
+
+.mentor-mprofile select {
+    padding: 9px 14px;
+    /*background-color: #FAFAFA;
+    border-color: #CCCCCC;*/
+    color: #666666;
+}
+
+.mentor-mprofile .comment {
+    font-size: 85%;
+}
+
+.profile-fields .avatar {
+    vertical-align: bottom;
+}
+
+
+
+@media screen and (max-width: 782px) {
+
+    .mentor-mprofile input[type='text'] {
+        width: 100%;
+    }
+
+}

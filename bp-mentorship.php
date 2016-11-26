@@ -42,9 +42,16 @@ function mif_bp_mentorship_init()
 {
 	$plugin_path = plugin_dir_path( __FILE__ );
 	require_once $plugin_path . 'inc/functions.php';
-	require_once $plugin_path . 'inc/mentors-page.php';
+
+	require_once $plugin_path . 'inc/members-functions.php';
+	require_once $plugin_path . 'inc/members-page.php';
+
+	require_once $plugin_path . 'inc/mprofile-functions.php';
+	require_once $plugin_path . 'inc/mprofile-page.php';
+
 	require_once $plugin_path . 'inc/ajax-helper.php';
 	require_once $plugin_path . 'inc/bp-fix.php';
+
 }
 
 
