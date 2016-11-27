@@ -68,6 +68,12 @@ function mprofile_page_content()
             return;
         } 
 
+        if ( $_REQUEST['action'] == 'verification_request' ) 
+        {
+            echo get_mprofile_verification_request_form();
+            return;
+        } 
+
 
     }
 
@@ -166,8 +172,6 @@ function mprofile_page_content()
                 <table class="profile-fields">
     			<tbody>';
 
-    // $ud = bp_get_displayed_user()->userdata;
-
     $verification_fields = mentorship_get_verification_fields();
     $verification_data = mentorship_get_verification_data();
     $verifications = mentorship_get_verification_verifications();
@@ -194,7 +198,13 @@ function mprofile_page_content()
 
     if ( true ) { // ## Кто должен видеть эту кнопку??
         
-        $out .= '<p><a href="' . wp_nonce_url( '?action=verification_edit', 'mentorship_verification_edit' ) . '" class="button">' . __( 'Редактировать', 'mentorship' ) . '</a></p>';
+        $out .= '<p><a href="' . wp_nonce_url( '?action=verification_edit', 'mentorship_verification_edit' ) . '" class="button">' . __( 'Редактировать', 'mentorship' ) . '</a> ';
+
+    } 
+
+    if ( true ) { // ## Кто должен видеть эту кнопку??
+        
+        $out .= '<a href="' . wp_nonce_url( '?action=verification_request', 'mentorship_verification_request' ) . '" class="button">' . __( 'Заявка на подтверждение', 'mentorship' ) . '</a></p>';
 
     } 
 
@@ -233,15 +243,23 @@ function get_mprofile_mprofile_edit_form()
     $n = 0;
     foreach ( (array) $mprofile_fields as $key => $item ) {
 
-        if ( $key == 'date' ) continue;
+        // if ( $key == 'date' ) continue;
         if ( false && $key == 'comment' ) continue; // ### добавить проверку на наличие статуса подтвержденного пользователя
 
         $class_arr = array();
         $class_arr[] = ( $n % 2 == 1 ) ? 'alt' : '';
         $class = ( $class_arr ) ? ' class="' . implode( ' ', $class_arr ) . '"' : '';
 
+        $ro = '';
+        if ( $key == 'date' ) {
+
+            $item['comment'] = __( 'Если сведения были актуальны на указанную дату, то нет необходимости их менять.', 'mentorship' );    
+            $ro = ' readonly';
+        
+        }
+
         $value = ( isset( $mprofile_data[$key] ) ) ? $mprofile_data[$key] : '';  
-        $input = '<input type="text" name="' . $key . '" value="' . $value . '">';
+        $input = '<input type="text" name="' . $key . '" value="' . $value . '"' . $ro . '>';
 
         if ( $key == 'level' ) {
 
@@ -262,6 +280,12 @@ function get_mprofile_mprofile_edit_form()
            
         }
     
+        // if ( $key == 'date' ) {
+
+        //     $input = '<p class="field">' . $value . '</p><p class="comment">' . __( 'Если сведения были актуальны на указанную дату, то нет необходимости их менять.', 'mentorship' ) . '</p>';    
+           
+        // }
+    
         $tr = '<tr' . $class . '><td class="label">' . $item['descr'] . '</td><td class="data"><p>' . $input . '</p><p class="comment">' . $item['comment'] . '</p></td></tr>'; 
         $out .= apply_filters( 'mif_bp_mentorship_get_mprofile_mprofile_edit_form_tr', $tr, $item, $value, $class );
 
@@ -274,6 +298,8 @@ function get_mprofile_mprofile_edit_form()
 
     $out .= wp_nonce_field( "mentorship-mprofile-save", "_wpnonce", true, false );
 
+    if ( mentorship_check_verification() ) $out .= '<p>' . __( 'Изменение фамилии, имени и других ваших сведений ведёт к потере статуса подтверждённого пользователя. Изменяйте эти сведения, если это действительно необходимо. Для повторного получения статуса подтвержденного пользователя вам потребуется отправить заявку.', 'mentorship' ) . '</p>';
+
     $out .= '<p>
                 <input type="hidden" name="action" value="mprofile_save">
                 <input type="submit" value="' . __( 'Сохранить', 'mentorship' ) . '">
@@ -282,78 +308,9 @@ function get_mprofile_mprofile_edit_form()
 
     $out .= '</form></div>';
 
-    return apply_filters( 'mif_bp_mentorship_get_mprofile_mprofile_edit_form', $out );;
+    return apply_filters( 'mif_bp_mentorship_get_mprofile_mprofile_edit_form', $out );
 }
 
-
-//
-// Получить форму изменения статуса подтверждения пользователя
-//
-//
-
-function get_mprofile_verification_edit_form()
-{
-    $out = '';
-
-    if ( false ) show_mprofile_page(); // ### Если нет прав, то не показывать форму
-
-    $out .= '<div class="mentor-mprofile verification-edit">
-                <form action="' . get_mprofile_page_permalink() . '" method="post">
-                <p></p><h3>' . __( 'Изменение статуса подтверждения пользователя', 'mentorship' ) . '</h3>
-                <table class="profile-fields">
-    			<tbody>';
-
-    $verification_fields = mentorship_get_verification_fields();
-    $verification_data = mentorship_get_verification_data();
-
-    // --- Выпадающий список статусов --- // 
-
-    $item = $verification_fields['verification'];
-    $v_status = ( isset( $verification_data['verification'] ) ) ? $verification_data['verification'] : 'absent';
-    
-    $verifications = mentorship_get_verification_verifications();
-
-    $input = '<select name="verification">';
-
-    foreach ( (array) $verifications as $key => $v ) {
-
-        if ( !$v['visible'] ) continue;
-
-        $selected = ( $key == $v_status ) ? ' selected' : ''; 
-        $input .= '<option value="' . $key . '"' . $selected . '>' . $v['descr'] . '</option>';
-
-    }
-
-    $input .= '</select>';
-
-    $out .= '<tr><td class="label">' . $item['descr'] . '</td><td class="data"><p>' . $input . '</p><p class="comment">' . $item['comment'] . '</p></td></tr>';
-
-    // --- Комментарий --- // 
-
-    $item = $verification_fields['comment'];
-
-    $input = '<textarea name="comment"></textarea>';
-
-    $out .= '<tr><td class="label">' . $item['descr'] . '</td><td class="data"><p>' . $input . '</p><p class="comment">' . $item['comment'] . '</p></td></tr>';
-
-    // --- //
-
-    $out = apply_filters( 'mif_bp_mentorship_get_mprofile_verification_edit_form_table', $out );
-
-    $out .= '</tbody></table>';
-
-    $out .= wp_nonce_field( "mentorship-verification-save", "_wpnonce", true, false );
-
-    $out .= '<p>
-                <input type="hidden" name="action" value="verification_save">
-                <input type="submit" value="' . __( 'Сохранить', 'mentorship' ) . '">
-                <input type="button" value="' . __( 'Вернуться не сохраняя', 'mentorship' ) . '" onclick="document.location.href = \'' . get_mprofile_page_permalink() . '\'">
-            </p>';
-
-    $out .= '</form></div>';
-
-    return apply_filters( 'mif_bp_mentorship_get_mprofile_verification_edit_form', $out );;
-}
 
 
 //
@@ -379,6 +336,14 @@ function mprofile_page_content_helper()
         if ( !wp_verify_nonce( $_REQUEST['_wpnonce'], "mentorship-verification-save" ) ) return false;
 
         return mentorship_set_verification_data( $_REQUEST );
+
+    }
+
+    if ( $_REQUEST['action'] == 'verification_send_request' ) {
+
+        if ( !wp_verify_nonce( $_REQUEST['_wpnonce'], "mentorship-verification-request" ) ) return false;
+
+        return mentorship_verification_requesting( $_REQUEST['request_comment'] );
 
     }
 

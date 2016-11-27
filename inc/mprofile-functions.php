@@ -2,7 +2,7 @@
 
 //
 // MIF BP Mentorship mprofile functions
-//
+// Функции системы mprofile
 //
 
 defined( 'ABSPATH' ) || exit;
@@ -24,7 +24,7 @@ function mentorship_get_mprofile_fields()
         'institution' =>    array( 'descr' => __( 'Место учёбы (работы)', 'mentorship' ),    'comment' => __( 'Школа, вуз, факультет, группа и др. (обязательно)', 'mentorship' ),  'visible' => true ),
         'level' =>          array( 'descr' => __( 'Статус', 'mentorship' ),                  'comment' => '',                                                                       'visible' => true ),
         'date' =>           array( 'descr' => __( 'Дата заполнения', 'mentorship' ),         'comment' => '',                                                                       'visible' => true ),
-        'comment' =>        array( 'descr' => __( 'Комментарий', 'mentorship' ),             'comment' => __( 'Изменение фамилии, имени и других ваших данных ведёт к потере статуса подтверждённого пользователя. Вы можете оставить пояснения администратору, почему информацию пришлось поменять. Ваш комментарий упростит повторное получение статуса подтвержденного пользователя.', 'mentorship' ),                      'visible' => true ), // false
+        // 'comment' =>        array( 'descr' => __( 'Комментарий', 'mentorship' ),             'comment' => __( 'Изменение фамилии, имени и других ваших данных ведёт к потере статуса подтверждённого пользователя. Вы можете оставить пояснения администратору, почему информацию пришлось поменять. Ваш комментарий упростит повторное получение статуса подтвержденного пользователя.', 'mentorship' ),                      'visible' => true ), // false
 
     );
 
@@ -82,61 +82,19 @@ function mentorship_get_invite_fields()
 
 
 //
-// Определить список полей приглашения 
-// 
-//
-
-function mentorship_get_verification_fields()
-{
-
-    $arr = array(
-
-        'verification' =>   array( 'descr' => __( 'Статус подтверждения', 'mentorship' ),          'comment' => '',   'visible' => true ),
-        'verifier' =>       array( 'descr' => __( 'Кем назначен статус', 'mentorship' ),           'comment' => '',                                     'visible' => false ),
-        'date' =>           array( 'descr' => __( 'Дата получения статуса', 'mentorship' ),        'comment' => '',                                     'visible' => true ),
-        'comment' =>        array( 'descr' => __( 'Комментарий', 'mentorship' ),                   'comment' => __( 'Вы можете оставить комментарий, чтобы пояснить проблемы, из-за которых учётную запись не удаётся подтвердить (отсутствие достоверных сведений о имени, фамилии, месте работы, учёбы и др.)', 'mentorship' ), 'visible' => true ),
-        'log' =>            array( 'descr' => __( 'История подтверждений', 'mentorship' ),         'comment' => '',                                     'visible' => false ),
-
-    );
-
-    return apply_filters( 'mif_bp_mentorship_get_verification_fields', $arr );
-
-}
-
-
-//
-// Определить список возможных статусов подтверждения
-// 
-//
-
-function mentorship_get_verification_verifications()
-{
-
-    $arr = array(
-
-        'absent' =>     array( 'descr' => __( 'Запись не подтверждена', 'mentorship' ),         'visible' => true ),
-        'confirmed' =>  array( 'descr' => __( 'Запись подтверждена', 'mentorship' ),            'visible' => true ),
-        'waiting' =>    array( 'descr' => __( 'Ожидается подтверждение заявки', 'mentorship' ), 'visible' => false ),
-        'rejected' =>   array( 'descr' => __( 'Заявка отклонена', 'mentorship' ),               'visible' => true ),
-        'revoked' =>    array( 'descr' => __( 'Подтверждение отозвано', 'mentorship' ),         'visible' => false ),
-
-    );
-
-    return apply_filters( 'mif_bp_mentorship_get_verification_verifications', $arr );
-
-}
-
-
-//
 // Сохранить данные mprofile
 //
 //
 
-function mentorship_set_mprofile_data( $mprofile_date = false, $user = false )
+function mentorship_set_mprofile_data( $mprofile_date = false, $user = false, $show_msg = true )
 {
+    //
+    // $mprofile_date - массив с данными. См. mentorship_get_mprofile_fields()
     //
     // $user - пользователь, для которого надо сохранить данные (id или сам пользователь)
     // Если не указывается, то данные сохраняются для отображаемого пользователя
+    //
+    // $show_msg - true или false (выводить сообщения на экран, или нет)
     //
     // Возвращает:  - массив фактически сохранненых данных
     //              - false, если сохранить данные не удалось
@@ -171,23 +129,27 @@ function mentorship_set_mprofile_data( $mprofile_date = false, $user = false )
 
     if ( !$ret ) {
 
-        mentorship_add_message( __( 'Информацию сохранить не удалось', 'mentorship' ), 'error' );
+        if ( $show_msg ) mentorship_add_message( __( 'Информацию сохранить не удалось', 'mentorship' ), 'error' );
         return false;
 
     }
 
     if ( $update_flag ) {
 
-        // ...    // здесь лишать статуса подтвержденного пользователя
-        mentorship_add_message( __( 'Снят статус подтверждённого пользователя', 'mentorship' ), 'warning', 10 );
+        if ( mentorship_check_verification( $user ) ) {
+
+            mentorship_set_verification_revoked( $user_id, false );
+            if ( $show_msg ) mentorship_add_message( __( 'Снят статус подтверждённого пользователя', 'mentorship' ), 'warning', 10 );
+            
+        }
 
     } else {
 
-        mentorship_add_message( __( 'Статус подтверждённого пользователя не изменился', 'mentorship' ), '', 10 );
+        if ( $show_msg ) mentorship_add_message( __( 'Статус подтверждённого пользователя не изменился', 'mentorship' ), '', 10 );
 
     }
 
-    mentorship_add_message( __( 'Информация успешно сохранена', 'mentorship' ) );
+    if ( $show_msg ) mentorship_add_message( __( 'Информация успешно сохранена', 'mentorship' ) );
 
     return $arr;
 }
@@ -221,102 +183,6 @@ function mentorship_get_mprofile_data( $user = false )
 
     return $ret;
 }
-
-
-//
-// Сохранить данные о подтверждении пользователя
-//
-//
-
-function mentorship_set_verification_data( $verification_date = false, $user = false )
-{
-    //
-    // $user - пользователь, для которого надо сохранить данные (id или сам пользователь)
-    // Если не указывается, то данные сохраняются для отображаемого пользователя
-    //
-    // Возвращает:  - массив фактически сохранненых данных
-    //              - false, если сохранить данные не удалось
-    //
-
-    if ( $verification_date === false ) return false;
-
-    global $bp;
-    if ( $user === false ) $user = $bp->displayed_user->id;
-   	$user_id = is_object( $user ) ? $user->ID : absint( $user );
-	if ( empty( $user_id ) ) return false; 
-
-    $arr = array();
-    $arr_old = mentorship_get_verification_data( $user_id ); 
-
-    $verification_fields = mentorship_get_verification_fields();
-
-    foreach ( (array) $verification_fields as $key => $item ) {
-
-        $arr[$key] = ( isset( $verification_date[$key] ) ) ? strim( $verification_date[$key] ) : '';  
-    
-    }
-
-    $arr['verifier'] = get_current_user_id(); 
-
-    $arr['date'] = (int) current_time('timestamp'); 
-    
-    $vs = mentorship_get_verification_verifications();
-    
-    $log_old_arr = explode( "\n", $arr_old['log'] );
-    array_splice( $log_old_arr, 9);
-    $log_old = implode( "\n", (array) $log_old_arr );
-    $log_new = ( $arr_old ) ? '<p>' . $arr_old['date'] . ' - ' . get_userdata( $arr_old['verifier'] )->user_nicename . ' - ' . $vs[$arr_old['verification']]['descr'] . ' - ' . $arr_old['comment'] . "\n" : ''; 
-
-    $arr['log'] = $log_new . $log_old; 
-
-    $ret = update_user_meta( $user_id, 'mentorship_verification_data', $arr );
-
-    if ( !$ret ) {
-
-        mentorship_add_message( __( 'Новый статус подтверждения сохранить не удалось', 'mentorship' ), 'error' );
-        return false;
-
-    }
-
-    mentorship_add_message( __( 'Статус подтверждения успешно изменён', 'mentorship' ) );
-
-    return $arr;
-}
-
-//
-// Получить данные о подтверждении пользователя
-//
-//
-
-function mentorship_get_verification_data( $user = false )
-{
-    //
-    // $user - пользователь, для которого надо получить данные (id или сам пользователь)
-    // Если не указывается, то данные берутся для отображаемого пользователя
-    //
-    // Возвращает:  - массив с данными
-    //              - false, если получить данные не удалось
-    //
-
-    global $bp;
-    if ( $user === false ) $user = $bp->displayed_user->id;
-   	$user_id = is_object( $user ) ? $user->ID : absint( $user );
-	if ( empty( $user_id ) ) return false; 
-
-    $arr = get_user_meta( $user_id, 'mentorship_verification_data', true );
-
-    if ( isset( $arr['date'] ) ) $arr['date'] = mprofile_date_format( $arr['date'] );
-
-    $ret = ( is_array( $arr ) ) ? $arr : false;
-
-    return $ret;
-}
-
-
-
-
-
-
 
 
 

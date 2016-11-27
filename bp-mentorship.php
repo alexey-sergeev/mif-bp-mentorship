@@ -49,6 +49,12 @@ function mif_bp_mentorship_init()
 	require_once $plugin_path . 'inc/mprofile-functions.php';
 	require_once $plugin_path . 'inc/mprofile-page.php';
 
+	require_once $plugin_path . 'inc/verification-functions.php';
+	require_once $plugin_path . 'inc/verification-page.php';
+
+	require_once $plugin_path . 'inc/invite-functions.php';
+	require_once $plugin_path . 'inc/invite-page.php';
+
 	require_once $plugin_path . 'inc/ajax-helper.php';
 	require_once $plugin_path . 'inc/bp-fix.php';
 

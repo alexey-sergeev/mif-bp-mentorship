@@ -107,7 +107,7 @@ function mentorship_show_messages()
 //
 //
 
-function mentorship_get_avatar( $user = false, $size = 50, $nicename_show = true )
+function mentorship_get_avatar( $user = false, $size = 50, $username_show = true )
 {
     global $bp;
     if ( $user === false ) $user = $bp->displayed_user->id;
@@ -115,12 +115,14 @@ function mentorship_get_avatar( $user = false, $size = 50, $nicename_show = true
     if ( empty( $user ) ) return false; 
 
     $out = '';
-    
+
+    $user_name = ( $user->display_name ) ? $user->display_name : $user->nicename; 
+
     $out .= '<a href="' . bp_core_get_user_domain( $user->ID ) . '">';
 
     $out .= get_avatar( $user->ID, $size );
 
-    if ( $nicename_show ) $out .= ' ' . $user->user_nicename;
+    if ( $username_show ) $out .= ' ' . $user_name;
 
     $out .= '</a>';
 
